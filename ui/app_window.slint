@@ -1,0 +1,174 @@
+import { Button, ComboBox, LineEdit, SpinBox, GroupBox } from "std-widgets.slint";
+
+export component MainWindow inherits Window {
+    title: "CMM Studio - CAD Tabanlı Ölçüm Programlama";
+    preferred-width: 1400px;
+    preferred-height: 900px;
+    background: #1e1e24;
+
+    // Rust tarafından tetiklenecek ve dinlenecek callback'ler
+    callback open-cad-file();
+    callback generate-path();
+    callback export-dmis();
+
+    // Sağ panel dinamik verileri
+    in-out property <string> feature-name: "Seçim Yok";
+    in-out property <string> feature-type: "-";
+    in-out property <string> nominal-coords: "X: 0.00 | Y: 0.00 | Z: 0.00";
+    in-out property <string> nominal-size: "Çap / Boyut: -";
+    in-out property <int> touch-points: 4;
+    in-out property <float> approach-dist: 5.0;
+    in-out property <float> retract-dist: 3.0;
+    in-out property <float> safety-z: 50.0;
+    in-out property <string> status-text: "Hazır: STEP/IGES dosyası açın.";
+
+    VerticalLayout {
+        spacing: 0px;
+        padding: 0px;
+
+        // ÜST ARAÇ ÇUBUĞU (TOOLBAR)
+        Rectangle {
+            height: 52px;
+            background: #2b2b36;
+
+            HorizontalLayout {
+                padding-left: 15px;
+                padding-right: 15px;
+                spacing: 12px;
+                alignment: start;
+
+                Button {
+                    text: "📁 Model Yükle (STEP/IGES)";
+                    clicked => { root.open-cad-file(); }
+                }
+
+                Rectangle { width: 1px; background: #444455; }
+
+                Text {
+                    text: "Aktif Prob: Renishaw PH10 (Ø4mm Stylus)";
+                    vertical-alignment: center;
+                    color: #d0d0e0;
+                    font-size: 13px;
+                }
+
+                Rectangle { width: 1px; background: #444455; }
+
+                Button {
+                    text: "⚡ Ölçüm Yolunu Hesapla";
+                    primary: true;
+                    clicked => { root.generate-path(); }
+                }
+
+                Button {
+                    text: "💾 DMIS Dışa Aktar (.dmi)";
+                    clicked => { root.export-dmis(); }
+                }
+
+                Rectangle { horizontal-stretch: 1; }
+
+                Text {
+                    text: root.status-text;
+                    vertical-alignment: center;
+                    color: #64b5f6;
+                    font-size: 12px;
+                }
+            }
+        }
+
+        // ORTA BÖLGE (3D VIEWPORT + SAĞ PANEL)
+        HorizontalLayout {
+            spacing: 0px;
+
+            // 3D Çizim Alanı (wgpu yüzeyi buraya bağlanır)
+            viewport := Rectangle {
+                horizontal-stretch: 1;
+                background: #141419;
+
+                Text {
+                    text: "3D CAD Görünüm Alanı (wgpu Canvas)\nModeli döndürmek için farenin sağ tuşunu, seçmek için sol tuşunu kullanın.";
+                    color: #555566;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            // SAĞ KONTROL & STRATEJİ PANELİ
+            Rectangle {
+                width: 340px;
+                background: #252530;
+
+                VerticalLayout {
+                    padding: 16px;
+                    spacing: 14px;
+                    alignment: start;
+
+                    Text {
+                        text: "GEOMETRİ ÖZELLİKLERİ";
+                        font-weight: 700;
+                        color: #ffffff;
+                        font-size: 14px;
+                    }
+
+                    GroupBox {
+                        title: "Seçili Geometri";
+                        VerticalLayout {
+                            spacing: 6px;
+                            Text { text: "Unsur: " + root.feature-name; color: #e0e0e0; }
+                            Text { text: "Tip: " + root.feature-type; color: #a0a0b0; }
+                            Text { text: root.nominal-coords; color: #a0a0b0; }
+                            Text { text: root.nominal-size; color: #a0a0b0; }
+                        }
+                    }
+
+                    Text {
+                        text: "ÖLÇÜM STRATEJİSİ";
+                        font-weight: 700;
+                        color: #ffffff;
+                        font-size: 14px;
+                    }
+
+                    GroupBox {
+                        title: "Yol Parametreleri";
+                        VerticalLayout {
+                            spacing: 8px;
+                            HorizontalLayout {
+                                Text { text: "Nokta Sayısı:"; vertical-alignment: center; color: #cccccc; }
+                                SpinBox {
+                                    value <=> root.touch-points;
+                                    minimum: 3;
+                                    maximum: 64;
+                                }
+                            }
+
+                            HorizontalLayout {
+                                Text { text: "Yaklaşma (mm):"; vertical-alignment: center; color: #cccccc; }
+                                LineEdit {
+                                    text: "5.0";
+                                }
+                            }
+
+                            HorizontalLayout {
+                                Text { text: "Geri Çekilme (mm):"; vertical-alignment: center; color: #cccccc; }
+                                LineEdit {
+                                    text: "3.0";
+                                }
+                            }
+
+                            HorizontalLayout {
+                                Text { text: "Güvenlik Düzlemi Z:"; vertical-alignment: center; color: #cccccc; }
+                                LineEdit {
+                                    text: "50.0";
+                                }
+                            }
+                        }
+                    }
+
+                    Button {
+                        text: "Stratejiyi Geometriye Uygula";
+                        clicked => { root.generate-path(); }
+                    }
+                }
+            }
+        }
+    }
+}
