@@ -1,0 +1,31 @@
+[package]
+name = "cmm_studio"
+version = "0.1.0"
+edition = "2021"
+authors = ["CMM Studio Team"]
+description = "CAD-based CMM Offline Programming Software"
+
+[dependencies]
+# GUI Framework
+slint = "1.5"
+
+# 3D Grafik ve Matematik
+wgpu = "0.19"
+winit = "0.29"
+glam = "0.27" # Hızlı 3D vektör ve matris matematiği
+
+# CAD B-Rep Çekirdeği
+# opencascade-rs veya opencascade C++ FFI
+# Not: opencascade-rs crates.io veya doğrudan github repolarından eklenebilir:
+# opencascade = { git = "https://github.com/bschwind/opencascade-rs" }
+
+# Yardımcı ve Serileştirme Kütüphaneleri
+bytemuck = { version = "1.14", features = ["derive"] }
+anyhow = "1.0"
+thiserror = "1.0"
+log = "0.4"
+env_logger = "0.11"
+chrono = "0.4"
+
+[build-dependencies]
+slint-build = "1.5"
